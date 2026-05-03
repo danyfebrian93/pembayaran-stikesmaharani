@@ -2,8 +2,16 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Meta Viewport sangat penting agar tampilan bersih di HP -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Aplikasi Pembayaran STIKES Maharani</title>
+    
+    <!-- PWA Meta -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#003B73">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome -->
@@ -16,7 +24,7 @@
             theme: {
                 extend: {
                     colors: {
-                        primary: '#1a1c2c',   
+                        primary: '#003B73',   
                         accent: '#F4B41A',    
                         danger: '#ef4444'
                     }
@@ -26,286 +34,261 @@
     </script>
     
     <style>
-        body { margin: 0; padding: 0; background-color: #f1f5f9; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
-        .bg-widget, .header-widget, .sidebar, .footer-widget, #navbar-iframe { display: none !important; }
-        #main-wrapper { width: 100% !important; max-width: 100% !important; padding: 0 !important; }
+        /* Menghilangkan elemen bawaan Blogger yang merusak tampilan */
+        #navbar-iframe, .navbar, .header-widget, .sidebar, .footer-widget, .comments { 
+            display: none !important; visibility: hidden !important; height: 0 !important; 
+        }
         
+        body { 
+            margin: 0; padding: 0; background-color: #f8fafc; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Menghilangkan padding bawaan body Blogger */
+        .content-inner, .main-inner, .post-body { padding: 0 !important; margin: 0 !important; }
+
         .hidden-view { display: none; }
-        .status-badge { white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; }
-        .login-card { box-shadow: 0 25px 50px -12px rgba(0, 59, 115, 0.25); }
-        input, select, textarea { color: #1e293b !important; }
-        input::placeholder { color: #94a3b8 !important; }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #f1f5f9; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        
+        /* Gaya khusus input agar rapi di mobile */
+        input, select, textarea {
+            font-size: 16px !important; /* Mencegah auto-zoom di iOS */
+            appearance: none;
+            -webkit-appearance: none;
+            border-radius: 0.75rem;
+        }
+
+        .card-shadow {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        /* Loading spinner */
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #F4B41A;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Smooth Transition */
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body class="text-slate-800">
 
     <script>
         /**
-         * PENTING: Ganti URL di bawah ini dengan URL Web App Anda.
-         * Contoh: https://script.google.com/macros/s/AKfycb.../exec
+         * PENTING: Masukkan URL Google Apps Script Anda di bawah ini.
+         * Contoh: "https://script.google.com/macros/s/AKfycbz.../exec"
          */
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbyKHdCy8b1h1RWDaVb4oc1HJR8eTPVc-geA7wfb5u0WPqPuE0RywgrnZ-HjtA9sV3seLg/exec"; 
+        const  = "URL_WEB_APP_ANDA_DI_SINI"; 
 
         let currentUser = null; 
 
         async function callGAS(action, payload = {}) {
-            // Validasi URL sebelum melakukan fetch
-            if (!GAS_URL || GAS_URL.includes("URL_WEB_APP")) {
-                Swal.fire("Konfigurasi Salah", "URL Web App belum diatur di dalam kode HTML.", "error");
-                return { success: false, message: "URL tidak valid" };
+            if (! || .includes("https://script.google.com/macros/s/AKfycbziQSRPWBx7XHc7OEvb3Pc9mU42m1RhriViO7iXx8n_rhUZXo3GTyMkesHGWDmfXN8J0Q/exec")) {
+                Swal.fire({
+                    title: "Konfigurasi Belum Siap",
+                    text: "Silakan masukkan URL Web App Google Apps Script Anda ke dalam kode (index.html) terlebih dahulu.",
+                    icon: "warning",
+                    confirmButtonColor: "#003B73"
+                });
+                return { success: false };
             }
-
             try {
-                const response = await fetch(GAS_URL, {
+                const response = await fetch(, {
                     method: "POST",
                     body: JSON.stringify({ action, payload })
                 });
                 return await response.json();
             } catch (error) {
-                console.error("Error GAS:", error);
-                return { success: false, message: "Koneksi ke server gagal. Pastikan URL benar dan Apps Script sudah di-deploy sebagai 'Anyone'." };
+                console.error("Error:", error);
+                return { success: false, message: "Gagal terhubung ke server. Pastikan internet aktif." };
             }
         }
     </script>
 
-    <!-- 1. LOGIN VIEW -->
-    <div id="view-login" class="min-h-screen flex items-center justify-center p-4 bg-[#003B73]">
-        <div class="bg-white rounded-[2.5rem] p-10 w-full max-w-md login-card border-t-[10px] border-accent relative overflow-hidden">
-            <div class="text-center mb-10">
-                <div class="w-20 h-20 bg-primary text-accent rounded-full flex items-center justify-center mx-auto mb-6 text-4xl shadow-xl">
+    <!-- VIEW LOGIN -->
+    <div id="view-login" class="min-h-screen flex items-center justify-center p-6 bg-[#003B73]">
+        <div class="bg-white rounded-3xl p-8 w-full max-w-sm card-shadow fade-in">
+            <div class="text-center mb-8">
+                <div class="w-20 h-20 bg-blue-50 text-primary rounded-3xl flex items-center justify-center mx-auto mb-4 text-4xl shadow-inner">
                     <i class="fa-solid fa-graduation-cap"></i>
                 </div>
-                <h1 class="text-2xl font-black text-primary tracking-tight uppercase">STIKES MAHARANI</h1>
-                <p class="text-slate-400 italic text-sm mt-1">Portal Pembayaran Keuangan</p>
+                <h1 class="text-2xl font-black text-primary tracking-tight">STIKES</h1>
+                <p class="text-primary font-medium text-xs tracking-widest uppercase">Maharani Malang</p>
+                <div class="h-1 w-10 bg-accent mx-auto mt-3 rounded-full"></div>
             </div>
             
-            <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-6">
+            <form onsubmit="handleLogin(event)" class="space-y-4">
                 <div>
-                    <label class="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Username / NIM</label>
-                    <input class="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:outline-none focus:border-accent font-bold" id="username" type="text" placeholder="Masukkan NIM" required>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 ml-1">NIM / Username</label>
+                    <input class="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-accent/50 outline-none transition-all" id="username" type="text" placeholder="Masukkan NIM Anda" required>
                 </div>
                 <div>
-                    <label class="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Password</label>
-                    <input class="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:outline-none focus:border-accent font-bold" id="password" type="password" placeholder="••••••••" required>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Password</label>
+                    <input class="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-accent/50 outline-none transition-all" id="password" type="password" placeholder="••••••••" required>
                 </div>
-                <button class="w-full bg-primary hover:bg-slate-800 text-white font-black py-4 rounded-2xl transition-all shadow-xl flex items-center justify-center gap-3 uppercase tracking-widest text-sm" type="submit">
-                    MASUK PORTAL <i class="fa-solid fa-arrow-right"></i>
+                <button class="w-full bg-primary hover:bg-slate-800 text-white font-bold py-4 rounded-2xl transition-all shadow-lg flex items-center justify-center gap-3 text-sm mt-2" type="submit">
+                    MASUK KE PORTAL
                 </button>
             </form>
+            <p class="text-center text-[10px] text-slate-400 mt-8 font-medium">© 2024 IT Support STIKES Maharani</p>
         </div>
     </div>
 
-    <!-- 2. MAHASISWA VIEW -->
-    <div id="view-mahasiswa" class="min-h-screen hidden-view bg-slate-50">
-        <nav class="bg-[#003B73] text-white shadow-xl sticky top-0 z-40">
-            <div class="max-w-7xl mx-auto px-6 flex justify-between h-20 items-center">
-                <div class="flex items-center gap-4">
-                    <i class="fa-solid fa-graduation-cap text-accent text-2xl"></i>
-                    <span class="font-black text-lg tracking-wider uppercase">PANEL MAHASISWA</span>
-                </div>
-                <div class="flex items-center gap-4">
-                    <div class="text-right">
-                        <p class="text-[10px] text-blue-200 uppercase font-bold tracking-widest">Selamat Datang</p>
-                        <p class="font-bold text-sm" id="mhsNameDisplay">Memuat...</p>
+    <!-- VIEW MAHASISWA -->
+    <div id="view-mahasiswa" class="min-h-screen hidden-view fade-in">
+        <header class="bg-[#003B73] text-white p-5 sticky top-0 z-50 shadow-lg rounded-b-[2rem]">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-accent rounded-xl flex items-center justify-center text-primary shadow-lg">
+                        <i class="fa-solid fa-user-graduate"></i>
                     </div>
-                    <button onclick="logout()" class="bg-red-500 hover:bg-red-600 px-6 py-2 rounded-xl text-xs font-black uppercase transition-all shadow-lg">LOGOUT</button>
-                </div>
-            </div>
-        </nav>
-
-        <div class="max-w-7xl mx-auto px-6 py-10 grid grid-cols-1 lg:grid-cols-12 gap-8">
-            <!-- Form -->
-            <div class="lg:col-span-4">
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                    <div class="p-6 border-b border-slate-100 flex items-center gap-3">
-                        <i class="fa-solid fa-file-invoice-dollar text-primary"></i>
-                        <h2 class="font-black text-primary uppercase text-sm tracking-widest">Form Pembayaran</h2>
-                    </div>
-                    <div class="p-8">
-                        <form id="uploadForm" onsubmit="handleUpload(event)" class="space-y-5">
-                            <div>
-                                <label class="block text-[10px] font-black text-slate-400 uppercase mb-2">Nominal (Rp)</label>
-                                <input type="text" id="mhsNominal" oninput="formatCurrencyInput(this)" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl font-bold" placeholder="1.000.000" required>
-                            </div>
-                            <div>
-                                <label class="block text-[10px] font-black text-slate-400 uppercase mb-2">Semester</label>
-                                <select id="mhsSemester" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl font-bold" required>
-                                    <option value="" disabled selected>-- Pilih Semester --</option>
-                                    <option value="Semester 1 (Ganjil)">Semester 1 (Ganjil)</option>
-                                    <option value="Semester 2 (Genap)">Semester 2 (Genap)</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-[10px] font-black text-slate-400 uppercase mb-2">Jenis Pembayaran</label>
-                                <select id="mhsJenis" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl font-bold" required>
-                                    <option value="" disabled selected>-- Pilih Jenis --</option>
-                                    <option value="Lunas">Lunas Per Semester</option>
-                                    <option value="Cicilan 1">Cicilan 1</option>
-                                    <option value="Cicilan 2">Cicilan 2</option>
-                                  	<option value="Cicilan 3">Cicilan 3</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-[10px] font-black text-slate-400 uppercase mb-2">Bukti Pembayaran</label>
-                                <div class="border-2 border-dashed border-slate-200 rounded-xl p-8 text-center hover:bg-slate-50 relative group">
-                                    <input type="file" id="mhsFile" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="updateFileName(this)" required>
-                                    <i class="fa-solid fa-cloud-arrow-up text-3xl text-slate-300 group-hover:text-accent transition-colors"></i>
-                                    <p class="text-[11px] text-slate-400 font-bold mt-2" id="mhsFileName">Klik untuk pilih file</p>
-                                </div>
-                            </div>
-                            <button type="submit" class="w-full bg-accent hover:bg-yellow-500 text-primary font-black py-4 rounded-xl shadow-lg transition-all flex items-center justify-center gap-3 uppercase tracking-widest">
-                                <i class="fa-solid fa-paper-plane"></i> KIRIM BUKTI
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Table -->
-            <div class="lg:col-span-8">
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                    <div class="p-6 border-b border-slate-100 flex items-center gap-3">
-                        <i class="fa-solid fa-history text-primary"></i>
-                        <h2 class="font-black text-primary uppercase text-sm tracking-widest">Riwayat</h2>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-sm">
-                            <thead class="bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                                <tr>
-                                    <th class="py-4 px-6 text-left">Tanggal</th>
-                                    <th class="py-4 px-6 text-left">Detail</th>
-                                    <th class="py-4 px-6 text-right">Nominal</th>
-                                    <th class="py-4 px-6 text-center">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody id="mhsTableBody" class="divide-y divide-slate-100"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 3. ADMIN VIEW -->
-    <div id="view-admin" class="min-h-screen hidden-view bg-slate-50">
-        <nav class="bg-primary text-white shadow-xl sticky top-0 z-40">
-            <div class="max-w-7xl mx-auto px-6 flex justify-between h-20 items-center">
-                <div class="flex items-center gap-4">
-                    <i class="fa-solid fa-shield-halved text-accent text-2xl"></i>
-                    <span class="font-black text-lg tracking-wider uppercase">Panel Administrator</span>
-                </div>
-                <div class="flex items-center gap-4">
-                    <span class="text-sm font-bold opacity-80 hidden sm:block">Hai, Administrator Utama</span>
-                    <button onclick="logout()" class="bg-red-500 hover:bg-red-600 px-6 py-2 rounded-xl text-xs font-black uppercase transition-all shadow-lg">Logout</button>
-                </div>
-            </div>
-        </nav>
-
-        <div class="max-w-7xl mx-auto px-6 py-8">
-            <!-- Statistik Grid -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-                <div class="bg-white p-8 rounded-3xl shadow-sm border-l-8 border-blue-500 flex items-center justify-between">
                     <div>
-                        <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Pembayaran</p>
-                        <h3 id="statTotal" class="text-3xl font-black text-slate-800">0</h3>
+                        <p class="text-[10px] opacity-70 leading-none mb-1 font-bold uppercase tracking-tighter">Mahasiswa</p>
+                        <p class="font-bold text-sm truncate max-w-[150px]" id="mhsNameDisplay">Memuat Nama...</p>
                     </div>
-                    <div class="w-12 h-12 bg-blue-50 text-blue-500 rounded-xl flex items-center justify-center text-xl shadow-inner"><i class="fa-solid fa-wallet"></i></div>
                 </div>
-                <div class="bg-white p-8 rounded-3xl shadow-sm border-l-8 border-yellow-400 flex items-center justify-between">
-                    <div>
-                        <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1">Menunggu</p>
-                        <h3 id="statWait" class="text-3xl font-black text-slate-800">0</h3>
-                    </div>
-                    <div class="w-12 h-12 bg-yellow-50 text-yellow-500 rounded-xl flex items-center justify-center text-xl shadow-inner"><i class="fa-solid fa-hourglass-half"></i></div>
-                </div>
-                <div class="bg-white p-8 rounded-3xl shadow-sm border-l-8 border-green-500 flex items-center justify-between">
-                    <div>
-                        <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1">Diterima</p>
-                        <h3 id="statSuccess" class="text-3xl font-black text-slate-800">0</h3>
-                    </div>
-                    <div class="w-12 h-12 bg-green-50 text-green-500 rounded-xl flex items-center justify-center text-xl shadow-inner"><i class="fa-solid fa-check"></i></div>
-                </div>
-                <div class="bg-white p-8 rounded-3xl shadow-sm border-l-8 border-red-500 flex items-center justify-between">
-                    <div>
-                        <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1">Ditolak</p>
-                        <h3 id="statReject" class="text-3xl font-black text-slate-800">0</h3>
-                    </div>
-                    <div class="w-12 h-12 bg-red-50 text-red-500 rounded-xl flex items-center justify-center text-xl shadow-inner"><i class="fa-solid fa-xmark"></i></div>
-                </div>
+                <button onclick="logout()" class="bg-white/10 p-2.5 rounded-xl hover:bg-white/20 transition-all border border-white/10">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                </button>
             </div>
+        </header>
 
-            <!-- Tabel Antrean -->
-            <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-                <div class="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/30">
-                    <div class="flex items-center gap-4">
-                        <i class="fa-solid fa-list-ul text-primary"></i>
-                        <h2 class="font-black text-primary uppercase text-sm tracking-widest">Antrean Verifikasi</h2>
+        <main class="p-5 space-y-6 pb-10">
+            <!-- Form Upload -->
+            <div class="bg-white rounded-[2rem] p-6 card-shadow border border-slate-100">
+                <div class="flex items-center gap-2 mb-4">
+                    <div class="w-1.5 h-6 bg-accent rounded-full"></div>
+                    <h2 class="text-sm font-bold text-slate-800">Kirim Bukti Pembayaran</h2>
+                </div>
+                
+                <form onsubmit="handleUpload(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1.5 ml-1">Nominal Transfer</label>
+                        <input type="text" id="mhsNominal" oninput="formatCurrencyInput(this)" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 text-sm focus:ring-2 focus:ring-accent/20" placeholder="Rp 0" required>
                     </div>
-                    <button onclick="loadAdminData()" class="bg-slate-100 hover:bg-slate-200 px-6 py-2.5 rounded-xl text-[10px] font-black uppercase flex items-center gap-2 transition-all">
-                        <i class="fa-solid fa-rotate"></i> Reload
+                    
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1.5 ml-1">Semester</label>
+                            <select id="mhsSemester" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 text-sm" required>
+                                <option value="" disabled selected>Pilih...</option>
+                                <option value="Semester 1 (Ganjil)">1 (Ganjil)</option>
+                                <option value="Semester 2 (Genap)">2 (Genap)</option>
+                                <option value="Semester 3 (Ganjil)">3 (Ganjil)</option>
+                                <option value="Semester 4 (Genap)">4 (Genap)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1.5 ml-1">Tipe</label>
+                            <select id="mhsJenis" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 text-sm" required>
+                                <option value="" disabled selected>Pilih...</option>
+                                <option value="Lunas">Lunas</option>
+                                <option value="Cicilan">Cicilan</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="relative border-2 border-dashed border-slate-200 rounded-2xl p-6 text-center hover:bg-slate-50 transition-all cursor-pointer">
+                        <input type="file" id="mhsFile" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer" onchange="updateFileName(this)" required>
+                        <i class="fa-solid fa-cloud-arrow-up text-slate-300 text-3xl mb-2"></i>
+                        <p class="text-xs text-slate-500 font-bold" id="mhsFileName">Ketuk untuk Ambil Foto Bukti</p>
+                        <p class="text-[9px] text-slate-400 mt-1">Format: JPG, PNG (Maks 1MB)</p>
+                    </div>
+
+                    <button type="submit" class="w-full bg-accent text-primary font-black py-4 rounded-2xl shadow-xl shadow-accent/20 active:scale-95 transition-all text-sm">
+                        KIRIM SEKARANG
                     </button>
+                </form>
+            </div>
+
+            <!-- Riwayat -->
+            <div>
+                <div class="flex items-center justify-between mb-4 px-2">
+                    <h2 class="text-sm font-bold text-slate-800">Riwayat Transaksi</h2>
+                    <span class="text-[10px] bg-slate-200 text-slate-600 px-2 py-1 rounded-full font-bold">Terbaru</span>
                 </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full">
-                        <thead class="bg-slate-50/50">
-                            <tr class="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                                <th class="py-6 px-10 text-left">ID & Waktu</th>
-                                <th class="py-6 px-10 text-left">Mahasiswa</th>
-                                <th class="py-6 px-10 text-left">Semester & Nominal</th>
-                                <th class="py-6 px-10 text-center">Status</th>
-                                <th class="py-6 px-10 text-center">Tindakan</th>
-                            </tr>
-                        </thead>
-                        <tbody id="adminTableBody" class="divide-y divide-slate-100"></tbody>
-                    </table>
+                <div id="mhsTableBody" class="space-y-3">
+                    <!-- Data riwayat akan muncul di sini -->
                 </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- VIEW ADMIN -->
+    <div id="view-admin" class="min-h-screen hidden-view bg-slate-50 fade-in">
+        <header class="bg-slate-900 text-white p-5 sticky top-0 z-50 rounded-b-3xl">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 bg-red-500 rounded-lg flex items-center justify-center">
+                        <i class="fa-solid fa-shield-halved text-sm"></i>
+                    </div>
+                    <span class="font-black text-xs tracking-widest uppercase">Admin Panel</span>
+                </div>
+                <button onclick="logout()" class="text-[10px] bg-white/10 px-4 py-2 rounded-xl font-bold border border-white/10">KELUAR</button>
+            </div>
+        </header>
+
+        <div class="p-5 space-y-5">
+            <!-- Ringkasan Statistik -->
+            <div class="grid grid-cols-2 gap-4">
+                <div class="bg-white p-5 rounded-3xl border border-slate-100 card-shadow">
+                    <i class="fa-solid fa-clock text-yellow-500 mb-2"></i>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase">Menunggu</p>
+                    <p id="statWait" class="text-2xl font-black text-slate-800 tracking-tighter">0</p>
+                </div>
+                <div class="bg-white p-5 rounded-3xl border border-slate-100 card-shadow">
+                    <i class="fa-solid fa-circle-check text-green-500 mb-2"></i>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase">Selesai</p>
+                    <p id="statSuccess" class="text-2xl font-black text-slate-800 tracking-tighter">0</p>
+                </div>
+            </div>
+
+            <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Antrean Verifikasi</h3>
+            <div id="adminTableBody" class="space-y-4 pb-10">
+                <!-- Data antrean admin -->
             </div>
         </div>
     </div>
 
-    <!-- MODAL PENOLAKAN -->
-    <div id="modalTolak" class="fixed inset-0 bg-primary/80 backdrop-blur-sm z-[100] flex justify-center items-center hidden p-4">
-        <div class="bg-white w-full max-w-md rounded-3xl p-10 border-t-8 border-red-500 shadow-2xl">
-            <h3 class="text-2xl font-black text-slate-800 mb-6">Tolak Pembayaran</h3>
-            <textarea id="tolakAlasan" rows="4" class="w-full border-2 border-slate-100 rounded-2xl p-4 mb-8 focus:border-red-500 outline-none font-bold" placeholder="Tulis alasan penolakan..."></textarea>
-            <div class="flex gap-4">
-                <button onclick="closeModalTolak()" class="flex-1 px-6 py-4 bg-slate-100 text-slate-600 rounded-xl font-black uppercase tracking-widest">BATAL</button>
-                <button onclick="submitTolak()" class="flex-1 px-6 py-4 bg-red-600 text-white rounded-xl font-black uppercase tracking-widest shadow-lg shadow-red-600/20">KIRIM</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="loaderGlobal" class="fixed inset-0 bg-white/90 backdrop-blur z-[200] flex flex-col items-center justify-center hidden">
-        <div class="w-16 h-16 border-4 border-slate-100 border-t-accent rounded-full animate-spin mb-4"></div>
-        <p class="font-black text-primary uppercase tracking-widest text-xs">Sedang Memproses...</p>
+    <!-- GLOBAL LOADER -->
+    <div id="loaderGlobal" class="fixed inset-0 bg-[#003B73]/90 backdrop-blur-md z-[100] flex flex-col items-center justify-center hidden">
+        <div class="loader mb-4 scale-150"></div>
+        <p class="text-xs font-black text-white uppercase tracking-[0.3em] animate-pulse">Menghubungkan Server</p>
     </div>
 
     <script>
-        let currentVerifyId = null;
-
+        // Fungsi Formatter
         function formatRp(angka) {
             return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka);
         }
 
         function formatCurrencyInput(input) {
             let value = input.value.replace(/[^0-9]/g, '');
-            if (value === "") { input.value = ""; return; }
-            input.value = new Intl.NumberFormat('id-ID').format(value);
+            if (value) input.value = new Intl.NumberFormat('id-ID').format(value);
         }
 
+        // Navigasi Antar Halaman
         function switchView(viewId) {
             ['view-login', 'view-mahasiswa', 'view-admin'].forEach(id => document.getElementById(id).classList.add('hidden-view'));
             document.getElementById(viewId).classList.remove('hidden-view');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
+        // Proses Login
         async function handleLogin(e) {
             e.preventDefault();
             toggleLoader(true);
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
+            
             const res = await callGAS("LOGIN", { username, password });
 
             if (res.success) {
@@ -319,94 +302,101 @@
                     loadMahasiswaData();
                 }
             } else {
-                Swal.fire("Gagal", res.message, "error");
+                Swal.fire({ title: "Gagal Masuk", text: res.message, icon: "error", confirmButtonColor: "#ef4444" });
             }
             toggleLoader(false);
         }
 
+        // Ambil Data Mahasiswa
         async function loadMahasiswaData() {
             const res = await callGAS("GET_MHS_DATA", { username: currentUser.username });
-            const tbody = document.getElementById('mhsTableBody');
-            tbody.innerHTML = '';
+            const container = document.getElementById('mhsTableBody');
+            container.innerHTML = '';
 
             if (res.success && res.data.length > 0) {
                 res.data.forEach(item => {
-                    tbody.innerHTML += `
-                        <tr class="hover:bg-slate-50/50 transition-colors">
-                            <td class="py-5 px-6 text-[10px] text-slate-400 font-bold">${item.date}</td>
-                            <td class="py-5 px-6">
-                                <div class="font-black text-slate-800 text-xs uppercase">${item.semester}</div>
-                                <div class="text-[9px] text-accent font-black uppercase mt-0.5">${item.jenis}</div>
-                            </td>
-                            <td class="py-5 px-6 text-right font-black text-slate-900 text-sm">${formatRp(item.nominal)}</td>
-                            <td class="py-5 px-6 text-center">
-                                <span class="status-badge px-4 py-1.5 rounded-full text-[9px] font-black uppercase
-                                    ${item.status === 'Diterima' ? 'bg-green-100 text-green-700' : item.status === 'Ditolak' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}">
-                                    ${item.status}
-                                </span>
-                            </td>
-                        </tr>
+                    const statusClass = item.status === 'Diterima' ? 'bg-green-50 text-green-600 border-green-100' : 
+                                      item.status === 'Ditolak' ? 'bg-red-50 text-red-600 border-red-100' : 
+                                      'bg-yellow-50 text-yellow-600 border-yellow-100';
+                    
+                    container.innerHTML += `
+                        <div class="bg-white p-4 rounded-2xl flex justify-between items-center border border-slate-100 shadow-sm">
+                            <div class="flex gap-3 items-center">
+                                <div class="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400">
+                                    <i class="fa-solid fa-receipt"></i>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] text-slate-400 font-bold uppercase">${item.date.split(' ')[0]}</p>
+                                    <p class="text-xs font-black text-slate-800">${item.semester}</p>
+                                    <p class="text-[9px] text-slate-500 font-medium">${item.jenis}</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-sm font-black text-slate-900">${formatRp(item.nominal)}</p>
+                                <span class="text-[9px] font-black px-2 py-1 rounded-lg border ${statusClass}">${item.status.toUpperCase()}</span>
+                            </div>
+                        </div>
                     `;
                 });
             } else {
-                tbody.innerHTML = `<tr><td colspan="4" class="py-12 text-center text-slate-300 italic font-bold">Belum ada riwayat pembayaran.</td></tr>`;
+                container.innerHTML = `
+                    <div class="p-10 text-center bg-white rounded-3xl border border-dashed border-slate-200">
+                        <i class="fa-solid fa-folder-open text-slate-200 text-4xl mb-2"></i>
+                        <p class="text-xs text-slate-400 font-bold">Belum ada riwayat pembayaran</p>
+                    </div>`;
             }
         }
 
+        // Ambil Data Admin
         async function loadAdminData() {
             const res = await callGAS("GET_ADMIN_DATA");
-            const tbody = document.getElementById('adminTableBody');
-            tbody.innerHTML = '';
+            const container = document.getElementById('adminTableBody');
+            container.innerHTML = '';
 
             if (res.success) {
-                // Update Statistik
-                document.getElementById('statTotal').innerText = res.data.length;
                 document.getElementById('statWait').innerText = res.data.filter(i => i.status === 'Menunggu').length;
                 document.getElementById('statSuccess').innerText = res.data.filter(i => i.status === 'Diterima').length;
-                document.getElementById('statReject').innerText = res.data.filter(i => i.status === 'Ditolak').length;
 
-                res.data.forEach(item => {
-                    tbody.innerHTML += `
-                        <tr class="hover:bg-slate-50/50 transition-colors">
-                            <td class="py-6 px-10">
-                                <div class="font-black text-slate-800 text-xs uppercase">PAY-${item.id.slice(-6).toUpperCase()}</div>
-                                <div class="text-[9px] text-slate-400 font-bold uppercase">${item.date}</div>
-                            </td>
-                            <td class="py-6 px-10">
-                                <div class="font-black text-slate-700 text-sm uppercase">${item.name}</div>
-                                <div class="text-[10px] text-slate-400 font-bold uppercase">NIM: ${item.username}</div>
-                            </td>
-                            <td class="py-6 px-10">
-                                <div class="text-[10px] text-slate-400 font-bold uppercase">${item.semester}</div>
-                                <div class="font-black text-slate-900 text-sm uppercase">${formatRp(item.nominal)}</div>
-                            </td>
-                            <td class="py-6 px-10 text-center">
-                                <span class="status-badge px-5 py-2 rounded-xl text-[10px] font-black uppercase 
-                                    ${item.status === 'Diterima' ? 'bg-green-100 text-green-700' : item.status === 'Ditolak' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}">
-                                    ${item.status}
-                                </span>
-                            </td>
-                            <td class="py-6 px-10 text-center">
-                                <div class="flex justify-center gap-2">
-                                    <button onclick="window.open('${item.file}', '_blank')" class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm"><i class="fa-solid fa-eye"></i></button>
-                                    ${item.status === 'Menunggu' ? `
-                                        <button onclick="verifyAction('${item.id}', 'Diterima')" class="w-10 h-10 bg-green-50 text-green-600 rounded-xl hover:bg-green-600 hover:text-white transition-all shadow-sm"><i class="fa-solid fa-check text-lg"></i></button>
-                                        <button onclick="openModalTolak('${item.id}')" class="w-10 h-10 bg-red-50 text-red-600 rounded-xl hover:bg-red-600 hover:text-white transition-all shadow-sm"><i class="fa-solid fa-xmark text-lg"></i></button>
-                                    ` : ''}
+                const pending = res.data.filter(item => item.status === 'Menunggu');
+                
+                if (pending.length === 0) {
+                    container.innerHTML = `<div class="p-10 text-center text-slate-400 font-bold text-xs italic">Semua laporan sudah terverifikasi ✓</div>`;
+                    return;
+                }
+
+                pending.forEach(item => {
+                    container.innerHTML += `
+                        <div class="bg-white p-5 rounded-[2rem] card-shadow border border-slate-100">
+                            <div class="flex justify-between items-start mb-4">
+                                <div class="flex gap-3">
+                                    <div class="w-10 h-10 bg-blue-50 text-primary rounded-xl flex items-center justify-center font-black text-xs">
+                                        ${item.username.substring(0,2)}
+                                    </div>
+                                    <div>
+                                        <p class="text-[9px] font-black text-slate-400 uppercase tracking-tighter">${item.username}</p>
+                                        <p class="text-sm font-black text-slate-800 leading-tight">${item.name}</p>
+                                    </div>
                                 </div>
-                            </td>
-                        </tr>
+                                <p class="text-sm font-black text-primary">${formatRp(item.nominal)}</p>
+                            </div>
+                            <div class="grid grid-cols-3 gap-2">
+                                <button onclick="window.open('${item.file}', '_blank')" class="bg-slate-900 text-white py-2.5 rounded-xl text-[9px] font-black uppercase tracking-wider">Bukti</button>
+                                <button onclick="verifyAction('${item.id}', 'Diterima')" class="bg-green-500 text-white py-2.5 rounded-xl text-[9px] font-black uppercase tracking-wider">Terima</button>
+                                <button onclick="rejectPrompt('${item.id}')" class="bg-red-500 text-white py-2.5 rounded-xl text-[9px] font-black uppercase tracking-wider">Tolak</button>
+                            </div>
+                        </div>
                     `;
                 });
             }
         }
 
+        // Proses Submit Pembayaran
         async function handleUpload(e) {
             e.preventDefault();
             toggleLoader(true);
             const fileInput = document.getElementById('mhsFile');
             if (!fileInput.files[0]) {
-                Swal.fire("Peringatan", "Pilih file bukti pembayaran terlebih dahulu.", "warning");
+                Swal.fire("Peringatan", "Harap lampirkan foto bukti transfer.", "warning");
                 toggleLoader(false);
                 return;
             }
@@ -425,12 +415,11 @@
                     fileBase64: base64
                 });
                 if (res.success) {
-                    Swal.fire("Berhasil", "Bukti pembayaran telah terkirim.", "success");
-                    document.getElementById('uploadForm').reset();
-                    document.getElementById('mhsFileName').innerText = "Klik untuk pilih file";
+                    Swal.fire({ title: "Berhasil!", text: "Bukti pembayaran telah dikirim.", icon: "success", confirmButtonColor: "#F4B41A" });
+                    document.getElementById('mhsFile').value = "";
+                    document.getElementById('mhsNominal').value = "";
+                    document.getElementById('mhsFileName').innerText = "Ketuk untuk Ambil Foto Bukti";
                     loadMahasiswaData();
-                } else {
-                    Swal.fire("Gagal", res.message, "error");
                 }
                 toggleLoader(false);
             };
@@ -440,42 +429,51 @@
         async function verifyAction(id, status, reason = "") {
             toggleLoader(true);
             const res = await callGAS("VERIFY_PAYMENT", { id, status, reason });
-            if (res.success) {
-                Swal.fire("Berhasil", "Data berhasil diperbarui.", "success");
-                loadAdminData();
-            }
+            if (res.success) loadAdminData();
             toggleLoader(false);
         }
 
-        function openModalTolak(id) {
-            currentVerifyId = id;
-            document.getElementById('modalTolak').classList.remove('hidden');
-        }
-
-        function closeModalTolak() {
-            document.getElementById('modalTolak').classList.add('hidden');
-        }
-
-        function submitTolak() {
-            const reason = document.getElementById('tolakAlasan').value;
-            if(!reason) return Swal.fire("Peringatan", "Alasan wajib diisi.", "warning");
-            closeModalTolak();
-            verifyAction(currentVerifyId, 'Ditolak', reason);
+        function rejectPrompt(id) {
+            Swal.fire({
+                title: 'Alasan Penolakan',
+                text: 'Berikan alasan singkat kepada mahasiswa',
+                input: 'textarea',
+                inputPlaceholder: 'Contoh: Foto bukti tidak terbaca...',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonText: 'Batal',
+                confirmButtonText: 'Tolak Bukti'
+            }).then((result) => {
+                if (result.isConfirmed && result.value) {
+                    verifyAction(id, 'Ditolak', result.value);
+                }
+            });
         }
 
         function toggleLoader(show) {
-            const l = document.getElementById('loaderGlobal');
-            show ? l.classList.remove('hidden') : l.classList.add('hidden');
+            const loader = document.getElementById('loaderGlobal');
+            if (show) loader.classList.remove('hidden');
+            else loader.classList.add('hidden');
         }
 
         function updateFileName(input) {
-            document.getElementById('mhsFileName').innerText = input.files[0] ? input.files[0].name : "Klik untuk pilih file";
+            document.getElementById('mhsFileName').innerText = input.files[0] ? input.files[0].name : "Ketuk untuk Ambil Foto Bukti";
         }
 
         function logout() {
             currentUser = null;
             switchView('view-login');
         }
+
+        // PWA Service Worker Registration - Fixed for Sandbox environments
+        window.addEventListener('load', () => {
+            // Kita hanya mendaftar SW jika protokolnya aman (bukan blob: atau file:)
+            if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+                navigator.serviceWorker.register('sw.js').catch(err => {
+                    console.warn("Service Worker registration skipped (expected in preview):", err.message);
+                });
+            }
+        });
     </script>
 </body>
 </html>
