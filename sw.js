@@ -1,4 +1,4 @@
-const CACHE_NAME = 'stikes-cache-v1';
+const CACHE_NAME = 'stikes-maharani-v1';
 const urlsToCache = ['./', './index.html'];
 
 self.addEventListener('install', event => {
